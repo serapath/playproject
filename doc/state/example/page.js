@@ -1,6 +1,7 @@
 const STATE = require('../../../src/node_modules/STATE')
+const localdb = require('../../../src/node_modules/localdb')
 const statedb = STATE(__filename)
-const { id, sdb, io } = statedb(fallback_module)
+const { sdb, io } = statedb(fallback_module, localdb)
 
 /******************************************************************************
   PAGE
@@ -57,7 +58,7 @@ async function boot(opts) {
   // ----------------------------------------
   // ELEMENTS
   // ----------------------------------------
-  { // desktop
+  ;{ // desktop
     shadow.append(await app(subs[0]))
   }
   // ----------------------------------------
@@ -75,8 +76,8 @@ async function inject(data) {
   sheet.replaceSync(data.join('\n'))
 }
 
-function fallback_module (args, { listfy, tree }) {
-  listfy(tree)
+function fallback_module (args, { listify, tree }) {
+  listify(tree)
   const rainbow_theme = {
     type: 'theme',
     name: 'rainbow',
@@ -118,10 +119,11 @@ function fallback_module (args, { listfy, tree }) {
   }
   return {
     _: {
-      app: { $: { x: 0, y: 1 }, 0: app0, mapping: { theme: 'theme' } }
+      app: { $: { x: 0, y: 1 }, 0: app0, mapping: { theme: 'theme' } },
+      '../../../src/node_modules/localdb': 0
     },
     drive: {
-      'theme/': { 'style.css': { raw: "body { font-family: 'system-ui'; }" } },
+      'theme/style.css': { raw: "body { font-family: 'system-ui'; }" },
       'lang/': {}
     }
   }
