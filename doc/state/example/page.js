@@ -1,5 +1,5 @@
-const STATE = require('../../../src/node_modules/STATE')
-const localdb = require('../../../src/node_modules/localdb')
+const STATE = require('STATE')
+const localdb = require('localdb')
 const statedb = STATE(__filename)
 const { sdb, io } = statedb(fallback_module, localdb)
 
@@ -8,7 +8,7 @@ const { sdb, io } = statedb(fallback_module, localdb)
 ******************************************************************************/
 const app = require('app')
 const sheet = new CSSStyleSheet()
-config().then(() => boot({ sid: '' }))
+config().then(() => boot())
 
 async function config() {
   const path = path => new URL(`../src/node_modules/${path}`, `file://${__dirname}`).href.slice(8)
@@ -28,7 +28,7 @@ async function config() {
 /******************************************************************************
   PAGE BOOT
 ******************************************************************************/
-async function boot(opts) {
+async function boot () {
   // ----------------------------------------
   // ID + JSON STATE
   // ----------------------------------------
@@ -119,11 +119,11 @@ function fallback_module (args, { listify, tree }) {
   }
   return {
     _: {
-      app: { $: { x: 0, y: 1 }, 0: app0, mapping: { theme: 'theme' } },
-      '../../../src/node_modules/localdb': 0
+      app: { $: { x: 0, y: 1 }, 0: app0, mapping: { theme: 'theme' } }
     },
     drive: {
       'theme/style.css': { raw: "body { font-family: 'system-ui'; }" },
+      'theme/': { 'style.css': { raw: "body { font-family: 'system-ui'; }" }},
       'lang/': {}
     }
   }

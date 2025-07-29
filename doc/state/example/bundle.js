@@ -1,22 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const hash = 'a31832ad3cb24fe15ab36bdc73a929f43179d7b8'
-const base = 'https://raw.githubusercontent.com/alyhxn/playproject/'
-const prefix = base + hash
-const init_url = location.hash === '#dev' ? '/src/node_modules/init.js' : prefix + '/src/node_modules/init.js'
-const args = arguments
-
-
-
-fetch(init_url, { cache: 'no-store' }).then(res => res.text()).then(async source => {
-  const module = { exports: {} }
-  const f = new Function('module', 'require', source)
-  f(module, require)
-  const init = module.exports
-  await init(args, prefix)
-  require('./page') // or whatever is otherwise the main entry of our project
-})
-
-},{"./page":11}],2:[function(require,module,exports){
 (function (__filename){(function (){
 const STATE = require('../../../../src/node_modules/STATE')
 const statedb = STATE(__filename)
@@ -100,7 +82,7 @@ function fallback_module (args) { // -> set database defaults or load from datab
 }
 
 }).call(this)}).call(this,"/doc/state/example/node_modules/app.js")
-},{"../../../../src/node_modules/STATE":12,"foot":5,"head":6}],3:[function(require,module,exports){
+},{"../../../../src/node_modules/STATE":13,"foot":4,"head":5}],2:[function(require,module,exports){
 (function (__filename){(function (){
 const STATE = require('../../../../src/node_modules/STATE')
 const statedb = STATE(__filename)
@@ -263,7 +245,7 @@ function fallback_module () {
 }
 
 }).call(this)}).call(this,"/doc/state/example/node_modules/btn.js")
-},{"../../../../src/node_modules/STATE":12,"icon":7}],4:[function(require,module,exports){
+},{"../../../../src/node_modules/STATE":13,"icon":6}],3:[function(require,module,exports){
 function fallback_module () { // -> set database defaults or load from database
 	return {
     _: {
@@ -324,7 +306,7 @@ async function foo(opts) {
   return el
 }
 
-},{"nav":9}],5:[function(require,module,exports){
+},{"nav":9}],4:[function(require,module,exports){
 (function (__filename){(function (){
 const STATE = require('../../../../src/node_modules/STATE')
 const statedb = STATE(__filename)
@@ -390,7 +372,7 @@ function fallback_module () {
 }
 
 }).call(this)}).call(this,"/doc/state/example/node_modules/foot.js")
-},{"../../../../src/node_modules/STATE":12,"text":10}],6:[function(require,module,exports){
+},{"../../../../src/node_modules/STATE":13,"text":10}],5:[function(require,module,exports){
 (function (__filename){(function (){
 const STATE = require('../../../../src/node_modules/STATE')
 const statedb = STATE(__filename)
@@ -468,7 +450,7 @@ function fallback_module () { // -> set database defaults or load from database
   }
 }
 }).call(this)}).call(this,"/doc/state/example/node_modules/head.js")
-},{"../../../../src/node_modules/STATE":12,"foo":4}],7:[function(require,module,exports){
+},{"../../../../src/node_modules/STATE":13,"foo":3}],6:[function(require,module,exports){
 (function (__filename){(function (){
 const STATE = require('../../../../src/node_modules/STATE')
 const statedb = STATE(__filename)
@@ -528,7 +510,124 @@ function fallback_module () {
 }
 
 }).call(this)}).call(this,"/doc/state/example/node_modules/icon.js")
-},{"../../../../src/node_modules/STATE":12}],8:[function(require,module,exports){
+},{"../../../../src/node_modules/STATE":13}],7:[function(require,module,exports){
+/******************************************************************************
+  LOCALDB COMPONENT
+******************************************************************************/
+module.exports = localdb
+
+function localdb () {
+  const prefix = '153/'
+  return { add, read_all, read, drop, push, length, append, find, wash, get_id }
+
+  function length (keys) {
+    const address = prefix + keys.join('/')
+    return Object.keys(localStorage).filter(key => key.includes(address)).length
+  }
+  /**
+   * Assigns value to the key of an object already present in the DB
+   * 
+   * @param {String[]} keys 
+   * @param {any} value 
+   */
+  function add (keys, value, precheck) {
+    localStorage[(precheck ? '' : prefix) + keys.join('/')] = JSON.stringify(value)
+  }
+  /**
+   * Appends values into an object already present in the DB
+   * 
+   * @param {String[]} keys 
+   * @param {any} value 
+   */
+  function append (keys, data) {
+    const pre = keys.join('/')
+    Object.entries(data).forEach(([key, value]) => {
+      localStorage[prefix + pre+'/'+key] = JSON.stringify(value)
+    })
+  }
+  /**
+   * Pushes value to an array already present in the DB
+   * 
+   * @param {String[]} keys
+   * @param {any} value 
+   */
+  function push (keys, value) {
+    const independent_key = keys.slice(0, -1)
+    const data = JSON.parse(localStorage[prefix + independent_key.join('/')])
+    data[keys.at(-1)].push(value)
+    localStorage[prefix + independent_key.join('/')] = JSON.stringify(data)
+  }
+  function read (keys) {
+    const result = localStorage[prefix + keys.join('/')]
+    return result && JSON.parse(result)
+  }
+  function read_all (addresses) {
+    let result = localStorage
+    addresses.forEach(address => {
+      const temp = {}
+      Object.entries(result).forEach(([key, value]) => {
+        if(key.includes(address))
+          temp[key] = value
+      })
+      result = temp
+    })
+    const temp = {}
+    Object.entries(result).forEach(([key, value]) => {
+      temp[key.replace(/^([^/]+\/){2}/, '')] = JSON.parse(value)
+    })
+    return temp
+  }
+  function drop (keys) {
+    if(keys.length > 1){
+      const data = JSON.parse(localStorage[keys[0]])
+      let temp = data
+      keys.slice(1, -1).forEach(key => {
+        temp = temp[key]
+      })
+      if(Array.isArray(temp))
+        temp.splice(keys[keys.length - 1], 1)
+      else
+        delete(temp[keys[keys.length - 1]])
+      localStorage[keys[0]] = JSON.stringify(data)
+    }
+    else
+      delete(localStorage[keys[0]])
+  }
+  function find (keys, filters, index = 0) {
+    let index_count = 0
+    const address = prefix + keys.join('/')
+    const target_key = Object.keys(localStorage).find(key => {
+      if(key.includes(address)){
+        const entry = JSON.parse(localStorage[key])
+        let count = 0
+        Object.entries(filters).some(([search_key, value]) => {
+          if(entry[search_key] !== value)
+            return
+          count++
+        })
+        if(count === Object.keys(filters).length){
+          if(index_count === index)
+            return key
+          index_count++
+        }
+      }
+    }, undefined)
+    return target_key && JSON.parse(localStorage[target_key])
+  } 
+  function wash () {
+    localStorage.clear()
+  }
+  function get_id (raw_id) {
+    const seed = raw_id.replace(/:0$/, "")
+    const copies = Object.keys(read_all(['state', seed]))
+    if (copies.length) {
+      const id = copies.sort().at(-1).split(':')[1]
+      raw_id = seed + ':' + (Number(id || 0) + 1)
+    }
+    return raw_id
+  }
+}
+},{}],8:[function(require,module,exports){
 (function (__filename){(function (){
 const STATE = require('../../../../src/node_modules/STATE')
 const statedb = STATE(__filename)
@@ -813,7 +912,7 @@ function fallback_module () {
   }
 }
 }).call(this)}).call(this,"/doc/state/example/node_modules/menu.js")
-},{"../../../../src/node_modules/STATE":12,"btn":3}],9:[function(require,module,exports){
+},{"../../../../src/node_modules/STATE":13,"btn":2}],9:[function(require,module,exports){
 (function (__filename){(function (){
 const STATE = require('../../../../../src/node_modules/STATE')
 const statedb = STATE(__filename)
@@ -837,8 +936,6 @@ async function nav(opts) {
   }
 
   const { drive } = sdb
-  // console.log(await drive.put('lang/en-uk.json', { links: ['Home', 'About', 'Contact'] }))
-  // console.log(await drive.get('lang/en-uk.json'))
   // ----------------------------------------
   // TEMPLATE
   // ----------------------------------------
@@ -856,6 +953,8 @@ async function nav(opts) {
   const div = shadow.querySelector('div')
   const style = shadow.querySelector('style')
   const subs = await sdb.watch(onbatch)
+  console.log(await drive.put('lang/en-uk.json', { links: ['Home', 'About', 'Contact'] }))
+  console.log(await drive.get('lang/en-uk.json'))
   // ----------------------------------------
   // ELEMENTS
   // ----------------------------------------
@@ -885,7 +984,7 @@ async function nav(opts) {
 }
 
 
-function fallback_module () { // -> set database defaults or load from database
+function fallback_module (args, {address}) { // -> set database defaults or load from database
   return { api, _: { 'menu':{ $: menu$ }, btn: { $: btn$ } } }
   function api () {
     const links = ['Marketing', 'Design', 'Web Dev', 'Ad Compaign']
@@ -903,7 +1002,7 @@ function fallback_module () { // -> set database defaults or load from database
         btn: {
           0: 'Register',
           1: 'Switch',
-          mapping: { 'lang': 'lang' }
+          mapping: { 'theme': 'theme', 'lang': 'lang' }
         }
       },
       drive: {
@@ -939,16 +1038,21 @@ function fallback_module () { // -> set database defaults or load from database
     data.api = api
     return data
     function api (args, tools, [btn]) {
-      console.log('btn$ called', args)
       const data = btn()
       if (args) data.drive['lang/']['en-us.json'].raw.title = args
+      data.drive['theme/'] = {
+        'style.css': {
+          $ref: 'btn.css',
+          address
+        }
+      }
       return data
     }
   }
   
 }
 }).call(this)}).call(this,"/doc/state/example/node_modules/nav/nav.js")
-},{"../../../../../src/node_modules/STATE":12,"btn":3,"menu":8}],10:[function(require,module,exports){
+},{"../../../../../src/node_modules/STATE":13,"btn":2,"menu":8}],10:[function(require,module,exports){
 (function (__filename){(function (){
 const STATE = require('../../../../src/node_modules/STATE')
 const statedb = STATE(__filename)
@@ -1008,18 +1112,19 @@ function fallback_module () {
 }
 
 }).call(this)}).call(this,"/doc/state/example/node_modules/text.js")
-},{"../../../../src/node_modules/STATE":12}],11:[function(require,module,exports){
+},{"../../../../src/node_modules/STATE":13}],11:[function(require,module,exports){
 (function (__filename,__dirname){(function (){
-const STATE = require('../../../src/node_modules/STATE')
+const STATE = require('STATE')
+const localdb = require('localdb')
 const statedb = STATE(__filename)
-const { id, sdb, io } = statedb(fallback_module)
+const { sdb, io } = statedb(fallback_module, localdb)
 
 /******************************************************************************
   PAGE
 ******************************************************************************/
 const app = require('app')
 const sheet = new CSSStyleSheet()
-config().then(() => boot({ sid: '' }))
+config().then(() => boot())
 
 async function config() {
   const path = path => new URL(`../src/node_modules/${path}`, `file://${__dirname}`).href.slice(8)
@@ -1039,7 +1144,7 @@ async function config() {
 /******************************************************************************
   PAGE BOOT
 ******************************************************************************/
-async function boot(opts) {
+async function boot () {
   // ----------------------------------------
   // ID + JSON STATE
   // ----------------------------------------
@@ -1069,7 +1174,7 @@ async function boot(opts) {
   // ----------------------------------------
   // ELEMENTS
   // ----------------------------------------
-  { // desktop
+  ;{ // desktop
     shadow.append(await app(subs[0]))
   }
   // ----------------------------------------
@@ -1087,8 +1192,8 @@ async function inject(data) {
   sheet.replaceSync(data.join('\n'))
 }
 
-function fallback_module (args, { listfy, tree }) {
-  listfy(tree)
+function fallback_module (args, { listify, tree }) {
+  listify(tree)
   const rainbow_theme = {
     type: 'theme',
     name: 'rainbow',
@@ -1133,7 +1238,8 @@ function fallback_module (args, { listfy, tree }) {
       app: { $: { x: 0, y: 1 }, 0: app0, mapping: { theme: 'theme' } }
     },
     drive: {
-      'theme/': { 'style.css': { raw: "body { font-family: 'system-ui'; }" } },
+      'theme/style.css': { raw: "body { font-family: 'system-ui'; }" },
+      'theme/': { 'style.css': { raw: "body { font-family: 'system-ui'; }" }},
       'lang/': {}
     }
   }
@@ -1184,11 +1290,13 @@ function fallback_module (args, { listfy, tree }) {
 }
 
 }).call(this)}).call(this,"/doc/state/example/page.js","/doc/state/example")
-},{"../../../src/node_modules/STATE":12,"app":2}],12:[function(require,module,exports){
+},{"STATE":12,"app":1,"localdb":7}],12:[function(require,module,exports){
+
+},{}],13:[function(require,module,exports){
 const localdb = require('localdb')
 const io = require('io')
 
-const db = localdb()
+let db
 /** Data stored in a entry in db by STATE (Schema): 
  * id (String): Node Path 
  * name (String/Optional): Any (To be used in theme_widget)
@@ -1224,14 +1332,14 @@ const status = {
   s2i: {},
   i2s: {},
   services: {},
-  args: {}
+  args: {},
+  callbacks: [],
+  helpers: {
+    listify
+  }
 }
 window.STATEMODULE = status
 
-// Version check and initialization
-
-status.fallback_check = Boolean(check_version())
-status.fallback_check && db.add(['playproject_version'], VERSION)
 
 
 // Symbol mappings
@@ -1253,8 +1361,15 @@ function STATE (address, modulepath, dependencies) {
   status.local_statuses[modulepath] = local_status
   return statedb
   
-  function statedb (fallback) {
-    const data = fallback(status.args[modulepath], { listfy: tree => listfy(tree, modulepath), tree: status.tree_pointers[modulepath] })
+  function statedb (fallback, imported_db = localdb) {
+    if(!db) {
+      db = imported_db()
+      status.db = db
+      // Version check and initialization
+      status.fallback_check = Boolean(check_version())
+      status.fallback_check && db.add(['playproject_version'], VERSION)
+    }
+    const data = fallback(status.args[modulepath], { listify: tree => listify(tree, modulepath), tree: status.tree_pointers[modulepath], address })
     local_status.fallback_instance = data.api
     const super_id = modulepath.split(/>(?=[^>]*$)/)[0]
     
@@ -1330,9 +1445,8 @@ function STATE (address, modulepath, dependencies) {
       }
       else{
         let new_name = name
-        let [new_super_id, temp_name] = super_id.split(/>(?=[^>]*$)/)
+        let new_super_id = super_id
 
-        new_name = temp_name + '>' + new_name
 
         while(!status.tree_pointers[new_super_id]){
           [new_super_id, temp_name] = new_super_id.split(/>(?=[^>]*$)/)
@@ -1564,18 +1678,18 @@ function STATE (address, modulepath, dependencies) {
     let {id: pre_id, hubs: pre_hubs, mapping} = pre_data
     let fallback_data
     try {
-      validate(fallback(status.args[pre_id], { listfy: tree => listfy(tree, modulepath), tree: status.tree_pointers[modulepath] }), xtype)
+      validate(fallback(status.args[pre_id], { listify: tree => listify(tree, modulepath), tree: status.tree_pointers[modulepath], address }), xtype)
     } catch (error) {
       throw new Error(`in fallback function of ${pre_id} ${xtype}\n${error.stack}`)
     }
     if(fun_status.overrides[pre_id]){
-      fallback_data = fun_status.overrides[pre_id].fun[0](status.args[pre_id], { listfy: tree => listfy(tree, modulepath), tree: status.tree_pointers[modulepath] }, get_fallbacks({ fallback, modulename: local_status.name, modulepath, instance_path: pre_id }))
+      fallback_data = fun_status.overrides[pre_id].fun[0](status.args[pre_id], { listify: tree => listify(tree, modulepath), tree: status.tree_pointers[modulepath] }, get_fallbacks({ fallback, modulename: local_status.name, modulepath, instance_path: pre_id }))
       console.log('Override used: ', pre_id)
       fun_status.overrides[pre_id].by.splice(0, 1)
       fun_status.overrides[pre_id].fun.splice(0, 1)
     }
     else
-      fallback_data = fallback(status.args[pre_id], { listfy: tree => listfy(tree, modulepath), tree: status.tree_pointers[modulepath] })
+      fallback_data = fallback(status.args[pre_id], { listify: tree => listify(tree, modulepath), tree: status.tree_pointers[modulepath], address })
 
     // console.log('fallback_data: ', fallback)
     fun_status.overrides = register_overrides({ overrides: fun_status.overrides, tree: fallback_data, path: modulepath, id: pre_id })
@@ -1660,7 +1774,13 @@ function STATE (address, modulepath, dependencies) {
           // entry.drive.lang && (entry.lang = entry.drive.lang)
           entry.inputs = []
           const new_drive = []
+          const map_drive = {}
+          const path_def = {}
           Object.entries(entry.drive).forEach(([dataset_type, dataset]) => {
+            if(dataset_type.split('/')[1]){
+              path_def[dataset_type] = dataset
+              return
+            }
             dataset_type = dataset_type.split('/')[0]
 
             const new_dataset = { files: [], mapping: {} }
@@ -1687,10 +1807,8 @@ function STATE (address, modulepath, dependencies) {
             check_name && entry.inputs.push(new_dataset.id)
             new_drive.push(new_dataset.id)
 
-
             if(!status.root_module){
               const hub_entry = db.read(['state', entry.hubs[0]])
-              console.log(hub_entry, entry)
               if(!hub_entry.inputs)
                 throw new Error(`Node "${hub_entry.id}" has no "drive" defined in its fallback` + FALLBACK_SUBS_POST_ERROR)
               if(!mapping?.[dataset_type])
@@ -1706,6 +1824,57 @@ function STATE (address, modulepath, dependencies) {
               })
             }
           })
+          if (Object.keys(path_def).length) {
+            Object.entries(path_def).forEach(([path, value]) =>{
+              const [dataset_type, file_name] = path.split('/')
+              const new_dataset = map_drive[dataset_type] || (map_drive[dataset_type] = { files: [], mapping: {} })
+              
+              if(!new_dataset.id){
+                new_dataset.id = entry.id + '.' + dataset_type + '.dataset'
+                if(new_drive.includes(new_dataset.id)){
+                  console.warn(`Both JSON and path definitions used for dataset "${dataset_type}" in the drive of "${entry.id}"`)
+                  return
+                }
+                new_dataset.type = dataset_type
+                new_dataset.name = 'default'
+                const copies = Object.keys(db.read_all(['state', new_dataset.id]))
+                if (copies.length) {
+                  const id = copies.sort().at(-1).split(':')[1]
+                  new_dataset.id = new_dataset.id + ':' + (Number(id || 0) + 1)
+                }
+                entries[new_dataset.id] = new_dataset
+              }
+              
+              const sanitized_file = sanitize_file(file_name, value, entry, entries)
+              entries[sanitized_file.id] = sanitized_file
+              new_dataset.files.push(sanitized_file.id)
+              let check_name = true
+              entry.inputs.forEach(dataset_id => {
+                const ds = entries[dataset_id]
+                if(ds.type === new_dataset.type)
+                  check_name = false
+              })
+              check_name && entry.inputs.push(new_dataset.id)
+              if(!status.root_module){
+                const hub_entry = db.read(['state', entry.hubs[0]])
+                console.log(hub_entry, entry)
+                if(!hub_entry.inputs)
+                  throw new Error(`Node "${hub_entry.id}" has no "drive" defined in its fallback` + FALLBACK_SUBS_POST_ERROR)
+                if(!mapping?.[dataset_type])
+                  throw new Error(`No mapping found for dataset "${dataset_type}" of subnode "${entry.id}" in node "${hub_entry.id}"\nTip: Add a mapping prop for "${dataset_type}" dataset in "${hub_entry.id}"'s fallback for "${entry.id}"` + FALLBACK_POST_ERROR)
+                const mapped_file_type = mapping[dataset_type]
+                hub_entry.inputs.some(input_id => {
+                  const input = db.read(['state', input_id])
+                  if(mapped_file_type === input.type){
+                    input.mapping[entry.id] = new_dataset.id
+                    entries[input_id] = input
+                    return
+                  }
+                })
+              }
+            })
+            new_drive.push(...Object.values(map_drive).map(dataset => dataset.id))
+          }
           entry.drive = new_drive
         }
       }
@@ -1722,7 +1891,8 @@ function STATE (address, modulepath, dependencies) {
       file.type = type
       file[file.type === 'js' ? 'subs' : 'hubs'] = [entry.id]
       if(file.$ref){
-        file.$ref = address.substring(0, address.lastIndexOf("/")) + '/' + file.$ref
+        const local_address = file.address || address
+        file.$ref = local_address.substring(0, local_address.lastIndexOf("/")) + '/' + file.$ref
       }
       const copies = Object.keys(db.read_all(['state', file.id]))
       if (copies.length) {
@@ -1756,9 +1926,10 @@ function validate (data, xtype) {
     },
     'drive::object': {
       "::object": {
-        "::object": { // Required key, any name allowed
+        "::object|string": { // Required key, any name allowed
           "raw|$ref:*:object|string": {}, // data or $ref are names, required, object or string are types
-          "$ref": "string"
+          "$ref": "string",
+          "address": "string",
         }
       },
     },
@@ -1842,7 +2013,7 @@ async function get_input ({ id, name, $ref, type, raw }) {
           ref_url = '/' + path_parts[0] + ($ref.startsWith('/') ? '' : '/') + $ref
         }
       }
-      const response = await fetch(ref_url)
+      const response = await fetch(ref_url, { cache: 'no-store' })
       if (!response.ok) 
         throw new Error(`Failed to fetch data from '${ref_url}' for '${id}'` + FALLBACK_SYNTAX_POST_ERROR)
       else
@@ -1923,10 +2094,10 @@ function encode(text) {
   }
   return code
 }
-function listfy(tree, prefix = '') {
+function listify(tree, prefix = '') {
   if (!tree)
     return []
-
+  
   const result = []
 
   function walk(current, prefix = '') {
@@ -1978,7 +2149,7 @@ function get_fallbacks ({ fallback, modulename, modulepath, instance_path }) {
   return [mutated_fallback, ...status.overrides[instance_path].fun]
     
   function mutated_fallback () {
-    const data = fallback(status.args[instance_path], { listfy: tree => listfy(tree, modulepath), tree: status.tree_pointers[modulepath] })
+    const data = fallback(status.args[instance_path], { listify: tree => listify(tree, modulepath), tree: status.tree_pointers[modulepath] })
 
     data.overrider = status.overrides[instance_path].by[0]
     merge_trees(data, modulepath)
@@ -1995,11 +2166,10 @@ function get_fallbacks ({ fallback, modulename, modulepath, instance_path }) {
 }
 function check_version () {
   if (db.read(['playproject_version']) != VERSION) {
-    localStorage.clear()
+    db.wash()
     return true
   }
 }
-
 // Public Function
 function create_statedb_interface (local_status, node_id, xtype) {
   const drive = {
@@ -2016,7 +2186,7 @@ function create_statedb_interface (local_status, node_id, xtype) {
       get_db,
       register,
       load: (snapshot) => {
-        localStorage.clear()
+        db.wash()
         Object.entries(snapshot).forEach(([key, value]) => {
           db.add([key], JSON.parse(value), true)
         })
@@ -2025,6 +2195,9 @@ function create_statedb_interface (local_status, node_id, xtype) {
       swtch,
       unregister,
       status,
+      export_db,
+      import_db,
+      register_callback
     }
   }
   node_id === status.ROOT_ID && (api.public_api.admin = api.private_api)
@@ -2039,6 +2212,27 @@ function create_statedb_interface (local_status, node_id, xtype) {
       await listener(await make_input_map(data.inputs))
     }
     return xtype === 'module' ? local_status.sub_modules : local_status.sub_instances[node_id]
+  }
+  function register_callback (callbacks) {
+    status.callbacks.push(...callbacks)
+  }
+  function export_db () {
+    //@TODO: Use a db method instead of localStorage here
+    const dataStr = JSON.stringify(localStorage, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'db.json';
+    a.click();
+  }
+  function import_db (data) {
+    Object.entries(data).forEach(([id, value]) => {
+      localStorage[id] = value
+    })
+    Object.entries(status.listeners).forEach(async ([id, listener]) => {
+      const node = db.read(['state', id])
+      await status.listeners[node.id](await make_input_map(node.inputs))
+    })
   }
   function get_sub (type) {
     const subs = xtype === 'module' ? local_status.sub_modules : local_status.sub_instances[node_id]
@@ -2170,7 +2364,6 @@ function create_statedb_interface (local_status, node_id, xtype) {
       })
     }
   }
-  
   function list (path, id = node_id) {
     const node = db.read(['state', id])
     if(!node.drive)
@@ -2178,6 +2371,7 @@ function create_statedb_interface (local_status, node_id, xtype) {
     const dataset_names = node.drive.map(dataset_id => {
       return dataset_id.split('.').at(-2) + '/'
     })
+    
     if (path) {
       let index
       dataset_names.some((dataset_name, i) => {
@@ -2187,7 +2381,7 @@ function create_statedb_interface (local_status, node_id, xtype) {
         }
       })
       if (index === undefined)
-        throw new Error(`Dataset "${dataset_name}" not found in node "${node.name}"`) 
+        throw new Error(`Dataset "${path}" not found in node "${node.name}"`) 
       const dataset = db.read(['state', node.drive[index]])
       return dataset.files.map(fileId => {
         const file = db.read(['state', fileId])
@@ -2219,8 +2413,9 @@ function create_statedb_interface (local_status, node_id, xtype) {
         break
       }
     }
-    if (!target_file)
+    if (!target_file){
       throw new Error(`File "${path}" not found`)
+    }
     return target_file
   }
   async function put (path, buffer, id = node_id) {
@@ -2245,7 +2440,7 @@ function create_statedb_interface (local_status, node_id, xtype) {
     }
     for (const file_id of dataset.files) {
       const temp_file = db.read(['state', file_id])
-      if(file.name === filename){
+      if(temp_file.name === filename){
         file.id = file_id
         break
       }
@@ -2300,7 +2495,7 @@ async function make_input_map (inputs) {
 
 
 module.exports = STATE
-},{"io":13,"localdb":14}],13:[function(require,module,exports){
+},{"io":14,"localdb":15}],14:[function(require,module,exports){
 const taken = {}
 
 module.exports = io
@@ -2347,7 +2542,7 @@ function io(seed, alias) {
     if (resolve) resolve(online)
   }
 }
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /******************************************************************************
   LOCALDB COMPONENT
 ******************************************************************************/
@@ -2355,7 +2550,7 @@ module.exports = localdb
 
 function localdb () {
   const prefix = '153/'
-  return { add, read_all, read, drop, push, length, append, find }
+  return { add, read_all, read, drop, push, length, append, find, wash}
 
   function length (keys) {
     const address = prefix + keys.join('/')
@@ -2398,14 +2593,21 @@ function localdb () {
     const result = localStorage[prefix + keys.join('/')]
     return result && JSON.parse(result)
   }
-  function read_all (keys) {
-    const address = prefix + keys.join('/')
-    let result = {}
-    Object.entries(localStorage).forEach(([key, value]) => {
-      if(key.includes(address))
-        result[key.split('/').at(-1)] = JSON.parse(value)
+  function read_all (addresses) {
+    let result = localStorage
+    addresses.forEach(address => {
+      const temp = {}
+      Object.entries(result).forEach(([key, value]) => {
+        if(key.includes(address))
+          temp[key] = value
       })
-    return result
+      result = temp
+    })
+    const temp = {}
+    Object.entries(result).forEach(([key, value]) => {
+      temp[key.replace(/^([^/]+\/){2}/, '')] = JSON.parse(value)
+    })
+    return temp
   }
   function drop (keys) {
     if(keys.length > 1){
@@ -2444,5 +2646,8 @@ function localdb () {
     }, undefined)
     return target_key && JSON.parse(localStorage[target_key])
   } 
+  function wash () {
+    localStorage.clear()
+  }
 }
-},{}]},{},[1]);
+},{}]},{},[11]);

@@ -1,12 +1,13 @@
 const STATE = require('STATE')
 const statedb = STATE(__filename)
-const { sdb, subs: [get] } = statedb(fallback_module)
+const { sdb } = statedb(fallback_module)
+
 function fallback_module () { // -> set database defaults or load from database
   return {
     _: {
       app: {
         $: '',
-        0: override_app
+        0: ''
       }
     },
     drive: {
@@ -87,8 +88,8 @@ async function boot () {
   const on = {
     theme: inject
   }
+  const { drive } = sdb
   const subs = await sdb.watch(onbatch)
-  const status = {}
   // ----------------------------------------
   // TEMPLATE
   // ----------------------------------------
@@ -106,12 +107,14 @@ async function boot () {
   // INIT
   // ----------------------------------------
 
-  function onbatch (batch) {
-    for (const { type, data } of batch) {
+  async function onbatch (batch) {
+    for (const {type, paths} of batch) {
+      const data = await Promise.all(paths.map(path => drive.get(path).then(file => file.raw)))
       on[type] && on[type](data)
     }
   }
 }
 async function inject (data) {
+  console.log('inject', data)
   sheet.replaceSync(data.join('\n'))
 }
