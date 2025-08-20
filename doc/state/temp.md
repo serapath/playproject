@@ -246,6 +246,8 @@ The `sdb.drive` object provides an interface for managing datasets and files att
     ```js
     if (sdb.drive.has('mydata/file1.json')) { /* ... */ }
     ```
+**sdb.get(sid)**  
+The `sdb.get` function returns the **readonly** drive of a sub-node using its `sid`. The returned `drive` object has all properties as mentioned above except for `put`.
 
 **Notes:**
 - Dataset names are defined in the fallback structure and must be unique within a node.
