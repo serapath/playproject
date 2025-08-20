@@ -187,7 +187,7 @@ The `STATE` module provides several key features for state management:
 #### 2. sdb Interface
 Provides access to following two APIs:
 
-**sdb.watch(onbatch)**
+##### `sdb.watch(onbatch)`
 ```js
 const subs = await sdb.watch(onbatch)
 const { drive } = sdb
@@ -204,9 +204,9 @@ async function onbatch(batch){
 - `type` refers to the `dataset_type` used in fallbacks. The key names need to match. E.g. see `template.js`
 - `paths` refers to the paths to the files inside the dataset.
 
-**`sdb.get_sub`**  
+##### `sdb.get_sub`  
   @TODO
-**`sdb.drive`**  
+##### `sdb.drive`
 The `sdb.drive` object provides an interface for managing datasets and files attached to the current node. It allows you to list, retrieve, add, and check files within datasets defined in the module's state.
 
 - **`sdb.drive.list(path?)`**
@@ -246,7 +246,7 @@ The `sdb.drive` object provides an interface for managing datasets and files att
     ```js
     if (sdb.drive.has('mydata/file1.json')) { /* ... */ }
     ```
-**`sdb.get(sid)`**  
+##### `sdb.get(sid)`
 The `sdb.get` function returns the **readonly** drive of a sub-node using its `sid`. The returned `drive` object has all properties as mentioned above except for `put`.
 Example:
 ```js
