@@ -719,6 +719,7 @@ async function menu(opts) {
   
   title.onclick = () => {
     main.classList.toggle('active')
+    drive.put('lang/en-uk.json', { title: 'new_title', links: ['Home', 'About', 'Contact'] })
   }
   title.onblur = () => {
     main.classList.remove('active')
@@ -732,6 +733,7 @@ async function menu(opts) {
   return el
 
   async function onbatch(batch){
+    console.log('Drive changed')
     for (const {type, paths} of batch) {
       const data = await Promise.all(paths.map(path => drive.get(path).then(file => file.raw)))
       on[type] && on[type](data)
@@ -962,6 +964,16 @@ async function nav(opts) {
   { //menu
     main.append(await menu(subs[0]), await menu(subs[1]), await menu(subs[2]), await menu_hover(subs[3]), await btn(subs[4]), await btn(subs[5]))
   }
+
+  // Sub Drive Usage Example
+  const sub_drive = sdb.get(subs[0].sid)
+  console.log('sub_drive', sub_drive.list('style/'))
+  console.log('sub_drive', await sub_drive.get('style/theme.css'))
+  
+  sub_drive.on(() => {
+    console.log('sub_drive change', sub_drive.list('style/'))
+  })
+
   return el
 
   async function onbatch(batch){
