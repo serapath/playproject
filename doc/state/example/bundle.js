@@ -518,7 +518,6 @@ module.exports = localdb
 
 function localdb () {
   const prefix = '153/'
-  console.log('hello')
   return { add, read_all, read, drop, push, length, append, find, wash, gen_id }
 
   function length (keys) {
@@ -1128,7 +1127,11 @@ function fallback_module () {
 const STATE = require('STATE')
 const localdb = require('localdb')
 const statedb = STATE(__filename)
-const { sdb, io } = statedb(fallback_module, localdb)
+const admin_api = statedb.admin(localdb)
+admin_api.on(event => {
+  console.log(event)
+})
+const { sdb, io } = statedb(fallback_module)
 
 /******************************************************************************
   PAGE

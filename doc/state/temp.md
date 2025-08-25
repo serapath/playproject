@@ -4,7 +4,7 @@
 ```js
 const STATE = require('STATE')
 const state_db = STATE(__filename)
-const { sdb, get, io } = state_db(fallback_module)
+const { sdb, get, io } = state_db(defaults)
 ```
 1. Import `STATE` and pass `__filename` (a built-in variable containing the file's path) to it.
 2. The returned `state_db` function registers fallbacks and provides `sdb` (the main interface) and `get` (a function for accessing the staet of an instance).
@@ -13,15 +13,15 @@ const { sdb, get, io } = state_db(fallback_module)
 ---
 ## Defining Fallbacks
 ```js
-function fallback_module() {
+function defaults() {
   //.....
 }
 ```
 1. Fallbacks provide default data when custom data is absent.
 2. Defined as functions instead of objects for flexibility (`@TODO` for further explanation).
 3. Two fallback functions are commonly used:
-   - `fallback_module()` (module-level fallback)
-   - `fallback_instance()` (instance-level fallback)
+   - `defaults()` (module-level fallback)
+   - `api()` (instance-level fallback)
 
 ### Fallback Syntax
 The fallback structure follows a specific format:
@@ -64,9 +64,9 @@ const expected_structure = {
 
 ### Fallback Semantics
 ```js
-function fallback_module() {
+function defaults() {
   return {
-    api: fallback_instance,
+    api: api,
     _: {
       sub_module: {
         $: '',
@@ -83,7 +83,7 @@ function fallback_module() {
     },
   }
   
-  function fallback_instance() {
+  function api() {
     return {
     _: {
       sub_module: {
@@ -300,3 +300,9 @@ Click [here](https://github.com/alyhxn/playproject/blob/main/doc/state/example/n
 
 This documentation provides a comprehensive guide to using the `STATE` module effectively in your applications. For more specific examples and advanced usage patterns, refer to the example modules in the codebase.
 
+
+
+
+
+#### Contribute
+http://127.0.0.1:5500/doc/state/example/#version=3&dev=node_modules%2F 
