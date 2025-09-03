@@ -3,7 +3,7 @@ const localdb = require('localdb')
 const statedb = STATE(__filename)
 const admin_api = statedb.admin(localdb)
 admin_api.on(event => {
-  console.log(event)
+  // console.log('%c' + 'Event', 'color: #ff4500; font-weight: bold', event)
 })
 const { sdb, io } = statedb(fallback_module)
 
@@ -45,7 +45,6 @@ async function boot () {
   const subs = await sdb.watch(onbatch, on)
 
   io.on(port => {
-    const { by, to } = port
     port.onmessage = event => {
       console.log(event.data)
       const data = event.data
@@ -128,7 +127,8 @@ function fallback_module (args, { listify, tree }) {
     drive: {
       'theme/style.css': { raw: "body { font-family: 'system-ui'; }" },
       'theme/': { 'style.css': { raw: "body { font-family: 'system-ui'; }" }},
-      'lang/': {}
+      'lang/': {},
+      'io/': {}
     }
   }
   function app0 (args, tools, [app]) {
