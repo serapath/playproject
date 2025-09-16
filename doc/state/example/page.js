@@ -122,7 +122,7 @@ function fallback_module (args, { listify, tree }) {
   }
   return {
     _: {
-      app: { $: { x: 0, y: 1 }, 0: app0, mapping: { theme: 'theme' } }
+      app: { $: { x: 0, y: 1 }, 0: app0, mapping: { theme: 'theme', lang: 'lang', io: 'io' } }
     },
     drive: {
       'theme/style.css': { raw: "body { font-family: 'system-ui'; }" },
